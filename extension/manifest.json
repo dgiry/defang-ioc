@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Defang IOC",
+  "version": "1.0.0",
+  "description": "Select text on any page → defang IOCs & copy to clipboard in one click.",
+  "permissions": ["contextMenus", "scripting", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Defang IOC"
+  }
+}
