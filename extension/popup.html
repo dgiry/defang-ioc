@@ -316,7 +316,7 @@ const defangEml = e   => e.replace('@', '[@]').replace(/\./g, '[.]');
 const refangIP  = ip  => ip.replace(/\[\.\]/g, '.');
 const refangDom = d   => d.replace(/\[\.\]/g, '.');
 const refangURL = url => url.replace(/hxx([pt]+)/gi, 'htt$1').replace(/\[\.\]/g, '.');
-const refangEml = e   => e.replace('[@]', '@').replace(/\[\.\]/g, '.');
+const refangEml = e   => e.replace(/\[@\]/g, '@').replace(/\[\.\]/g, '.');
 
 // ═══════════════════════════════════════════════════════════
 // EXTRACT
