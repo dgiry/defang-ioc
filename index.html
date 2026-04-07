@@ -631,6 +631,7 @@ function onInput() {
   if (!text) { results = []; renderResults(); return; }
   results = mode === 'defang' ? extract(text) : extractDefanged(text);
   renderResults();
+  if (results.length > 0) autoSave();
 }
 
 function handleKey(e) {
@@ -934,12 +935,6 @@ function closeHistory() {
   document.getElementById('history-backdrop').classList.add('hidden');
 }
 
-// Auto-save on every input change
-const _origOnInput = onInput;
-function onInput() {
-  _origOnInput();
-  if (results.length > 0) autoSave();
-}
 
 // ═══════════════════════════════════════════════════════════
 // YARA
