@@ -148,6 +148,10 @@
           class="rounded-lg bg-cyan-400 px-3 py-1.5 text-xs font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:scale-[1.02]">
           Copy all defanged
         </button>
+        <button onclick="copyLink()" title="Copy shareable link (encodes current text in URL)"
+          class="rounded-lg border border-white/12 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-white/10 flex items-center gap-1">
+          🔗 Link
+        </button>
         <!-- YARA button -->
         <button onclick="showYARA()" id="yara-btn"
           class="rounded-lg border border-white/12 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-white/10 flex items-center gap-1">
@@ -718,6 +722,14 @@ function handleKey(e) {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') onInput();
 }
 
+// Global shortcuts
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+    e.preventDefault();
+    copyAll();
+  }
+});
+
 function toggleMode() {
   mode = mode === 'defang' ? 'refang' : 'defang';
   document.getElementById('mode-label').textContent = mode === 'defang' ? 'Defang' : 'Refang';
@@ -792,6 +804,16 @@ function download(filename, content, mime) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+function copyLink() {
+  const text = document.getElementById('input').value;
+  if (!text) { showToast('Paste some text first'); return; }
+  const params = new URLSearchParams({ input: text });
+  if (mode === 'refang') params.set('mode', 'refang');
+  const url = window.location.origin + window.location.pathname + '?' + params.toString();
+  if (url.length > 8000) { showToast('Text too long for a URL link'); return; }
+  navigator.clipboard.writeText(url).then(() => showToast('🔗 Link copied!'));
 }
 
 function toggleExportMenu() {
