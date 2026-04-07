@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defang IOC — Paste, extract & defang threat indicators</title>
+  <meta name="description" content="Paste any threat intel text and instantly extract, defang, and pivot on every indicator. IPs, domains, URLs, hashes, emails, CVEs. Free, open source, no install.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .gradient-text { background: linear-gradient(135deg, #22d3ee 0%, #a5f3fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .card-hover { transition: transform .2s ease, border-color .2s ease; }
+    .card-hover:hover { transform: translateY(-2px); border-color: rgba(34,211,238,.25); }
+    .chip { display:inline-flex; align-items:center; padding:.2rem .65rem; border-radius:9999px; font-size:.72rem; font-weight:700; }
+    .ioc-demo { font-family: ui-monospace, monospace; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+
+  <!-- Nav -->
+  <nav class="sticky top-0 z-50 border-b border-white/8 bg-slate-950/90 backdrop-blur-xl">
+    <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+      <span class="text-base font-bold text-white">🔬 De<span class="text-cyan-400">fang</span> IOC</span>
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/dgiry/defang-ioc" target="_blank" rel="noopener"
+           class="hidden rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10 sm:inline-flex items-center gap-2">
+          ⭐ GitHub
+        </a>
+        <a href="index.html"
+           class="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:scale-[1.02]">
+          Open tool →
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden border-b border-white/8">
+    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-10%,rgba(34,211,238,.07),transparent)]"></div>
+    <div class="mx-auto max-w-5xl px-6 py-20 lg:py-28">
+      <div class="max-w-2xl">
+        <div class="mb-5 inline-flex items-center rounded-full border border-cyan-400/25 bg-cyan-400/8 px-4 py-1.5 text-sm font-medium text-cyan-300">
+          <span class="mr-2 h-1.5 w-1.5 rounded-full bg-cyan-400"></span>
+          Free · Open source · No install required
+        </div>
+        <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+          Paste. Extract.<br><span class="gradient-text">Defang.</span>
+        </h1>
+        <p class="mt-5 text-lg leading-8 text-slate-300">
+          Paste any threat intel text and instantly extract every indicator —
+          IPs, domains, URLs, hashes, emails, CVEs — defanged and ready to share.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-4">
+          <a href="index.html"
+             class="rounded-2xl bg-cyan-400 px-6 py-3.5 text-sm font-semibold text-slate-950 shadow-xl shadow-cyan-500/25 transition hover:scale-[1.02]">
+            Open the tool →
+          </a>
+          <a href="https://github.com/dgiry/defang-ioc" target="_blank" rel="noopener"
+             class="rounded-2xl border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10">
+            ⭐ GitHub
+          </a>
+        </div>
+        <p class="mt-4 text-sm text-slate-500">Single HTML file · Zero dependencies · Works offline</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live demo preview -->
+  <section class="border-b border-white/8 bg-white/1">
+    <div class="mx-auto max-w-5xl px-6 py-14">
+      <div class="mx-auto max-w-2xl">
+        <p class="mb-6 text-center text-sm font-semibold uppercase tracking-[.2em] text-cyan-400">How it works</p>
+        <div class="rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl shadow-black/40">
+          <p class="mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Input — paste any text</p>
+          <pre class="ioc-demo rounded-xl bg-slate-800/60 px-4 py-3 text-xs text-slate-300 leading-6 overflow-x-auto">The attacker used <span class="text-red-300">185.220.101.45</span> and <span class="text-orange-300">evil-domain.ru</span>
+Phishing via <span class="text-yellow-300">phish@malicious.net</span>
+URL: <span class="text-purple-300">https://cdn.malware-drop.io/payload.exe</span>
+Hash: <span class="text-green-300">4d186321c1a7f0f354b297e8914ab240c580303560c5d4ce1dd0f57a15f17abe</span>
+Vuln: <span class="text-red-300">CVE-2024-21887</span></pre>
+          <div class="my-4 flex items-center gap-3">
+            <div class="flex-1 border-t border-white/8"></div>
+            <span class="text-lg">↓</span>
+            <div class="flex-1 border-t border-white/8"></div>
+          </div>
+          <p class="mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Output — extracted & defanged</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-3 rounded-lg bg-white/3 px-3 py-2">
+              <span class="chip border border-blue-400/25 bg-blue-400/10 text-blue-300">IP</span>
+              <code class="text-xs text-slate-200 ioc-demo">185.220.101[.]45</code>
+              <span class="ml-auto text-xs text-slate-600">VT · SH · AB</span>
+            </div>
+            <div class="flex items-center gap-3 rounded-lg bg-white/3 px-3 py-2">
+              <span class="chip border border-orange-400/25 bg-orange-400/10 text-orange-300">Domain</span>
+              <code class="text-xs text-slate-200 ioc-demo">evil-domain[.]ru</code>
+              <span class="ml-auto text-xs text-slate-600">VT · UH</span>
+            </div>
+            <div class="flex items-center gap-3 rounded-lg bg-white/3 px-3 py-2">
+              <span class="chip border border-yellow-400/25 bg-yellow-400/10 text-yellow-300">Email</span>
+              <code class="text-xs text-slate-200 ioc-demo">phish[@]malicious[.]net</code>
+              <span class="ml-auto text-xs text-slate-600">VT</span>
+            </div>
+            <div class="flex items-center gap-3 rounded-lg bg-white/3 px-3 py-2">
+              <span class="chip border border-purple-400/25 bg-purple-400/10 text-purple-300">URL</span>
+              <code class="text-xs text-slate-200 ioc-demo truncate">hxxps://cdn[.]malware-drop[.]io/payload.exe</code>
+              <span class="ml-auto text-xs text-slate-600 shrink-0">VT · UH</span>
+            </div>
+            <div class="flex items-center gap-3 rounded-lg bg-white/3 px-3 py-2">
+              <span class="chip border border-green-400/25 bg-green-400/10 text-green-300">SHA256</span>
+              <code class="text-xs text-slate-200 ioc-demo truncate">4d186321…17abe</code>
+              <span class="ml-auto text-xs text-slate-600 shrink-0">VT · MB</span>
+            </div>
+            <div class="flex items-center gap-3 rounded-lg bg-white/3 px-3 py-2">
+              <span class="chip border border-red-400/25 bg-red-400/10 text-red-300">CVE</span>
+              <code class="text-xs text-slate-200 ioc-demo">CVE-2024-21887</code>
+              <span class="ml-auto text-xs text-slate-600">NVD · EPSS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="border-b border-white/8">
+    <div class="mx-auto max-w-5xl px-6 py-16">
+      <p class="mb-10 text-center text-sm font-semibold uppercase tracking-[.2em] text-cyan-400">Features</p>
+      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
+          <div class="mb-3 text-2xl">⚡</div>
+          <h3 class="text-sm font-semibold text-white">Instant extraction</h3>
+          <p class="mt-2 text-xs leading-6 text-slate-400">Detects IPs, domains, URLs, MD5/SHA1/SHA256 hashes, emails, and CVEs automatically as you type.</p>
+        </div>
+        <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
+          <div class="mb-3 text-2xl">🔄</div>
+          <h3 class="text-sm font-semibold text-white">Defang & refang</h3>
+          <p class="mt-2 text-xs leading-6 text-slate-400">Switch between defang mode (safe to share) and refang mode (restore original indicators) with one click.</p>
+        </div>
+        <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
+          <div class="mb-3 text-2xl">🔗</div>
+          <h3 class="text-sm font-semibold text-white">Pivot links</h3>
+          <p class="mt-2 text-xs leading-6 text-slate-400">Hover any IOC to reveal one-click investigation links: VirusTotal, Shodan, AbuseIPDB, URLhaus, MalwareBazaar, NVD.</p>
+        </div>
+        <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
+          <div class="mb-3 text-2xl">⬇</div>
+          <h3 class="text-sm font-semibold text-white">Export anywhere</h3>
+          <p class="mt-2 text-xs leading-6 text-slate-400">Download as <code class="text-cyan-300">.txt</code>, <code class="text-cyan-300">.csv</code>, <code class="text-cyan-300">.json</code>, or copy as a Markdown table for tickets and reports.</p>
+        </div>
+        <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
+          <div class="mb-3 text-2xl">🕐</div>
+          <h3 class="text-sm font-semibold text-white">Session history</h3>
+          <p class="mt-2 text-xs leading-6 text-slate-400">Every session is auto-saved locally. Restore any past analysis with one click — up to 25 sessions stored privately in your browser.</p>
+        </div>
+        <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
+          <div class="mb-3 text-2xl">🛡️</div>
+          <h3 class="text-sm font-semibold text-white">Zero data sharing</h3>
+          <p class="mt-2 text-xs leading-6 text-slate-400">Everything runs in your browser. No backend, no analytics, no tracking. Works fully offline after first load.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Who it's for -->
+  <section class="border-b border-white/8 bg-white/1">
+    <div class="mx-auto max-w-5xl px-6 py-16">
+      <p class="mb-8 text-center text-sm font-semibold uppercase tracking-[.2em] text-cyan-400">Who uses it</p>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-xl border border-white/8 bg-white/3 px-5 py-4">
+          <p class="text-sm font-semibold text-white">SOC analysts</p>
+          <p class="mt-1 text-xs text-slate-400">Defang IOCs before posting to Slack or creating tickets</p>
+        </div>
+        <div class="rounded-xl border border-white/8 bg-white/3 px-5 py-4">
+          <p class="text-sm font-semibold text-white">CTI analysts</p>
+          <p class="mt-1 text-xs text-slate-400">Extract and pivot on indicators from threat reports</p>
+        </div>
+        <div class="rounded-xl border border-white/8 bg-white/3 px-5 py-4">
+          <p class="text-sm font-semibold text-white">Incident responders</p>
+          <p class="mt-1 text-xs text-slate-400">Quickly parse IOCs from emails, logs, or vendor alerts</p>
+        </div>
+        <div class="rounded-xl border border-white/8 bg-white/3 px-5 py-4">
+          <p class="text-sm font-semibold text-white">Blue teamers</p>
+          <p class="mt-1 text-xs text-slate-400">Self-hosted, private, no data ever leaves your browser</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Open source -->
+  <section class="border-b border-white/8">
+    <div class="mx-auto max-w-5xl px-6 py-16">
+      <div class="rounded-3xl border border-cyan-400/15 bg-cyan-400/5 p-8 lg:p-10">
+        <div class="grid gap-8 lg:grid-cols-2 lg:items-center">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-[.2em] text-cyan-300">Open source</p>
+            <h2 class="mt-3 text-2xl font-bold tracking-tight text-white">One file. No build. No backend.</h2>
+            <p class="mt-4 text-sm leading-7 text-slate-300">
+              Defang IOC is a single <code class="text-cyan-300">index.html</code> file.
+              Drop it anywhere — GitHub Pages, Netlify, your own server, or just open it locally.
+              MIT license. Contributions welcome.
+            </p>
+            <div class="mt-6 flex gap-3">
+              <a href="https://github.com/dgiry/defang-ioc" target="_blank" rel="noopener"
+                 class="rounded-2xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:scale-[1.02]">
+                ⭐ Star on GitHub
+              </a>
+              <a href="https://github.com/dgiry/defang-ioc/blob/main/LICENSE" target="_blank" rel="noopener"
+                 class="rounded-2xl border border-white/20 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-white/10">
+                MIT License
+              </a>
+            </div>
+          </div>
+          <div class="space-y-2 text-sm text-slate-300">
+            <div class="flex items-center gap-3"><span class="text-cyan-400">✓</span> Single HTML file</div>
+            <div class="flex items-center gap-3"><span class="text-cyan-400">✓</span> Zero npm / build step</div>
+            <div class="flex items-center gap-3"><span class="text-cyan-400">✓</span> Zero backend required</div>
+            <div class="flex items-center gap-3"><span class="text-cyan-400">✓</span> Works fully offline</div>
+            <div class="flex items-center gap-3"><span class="text-cyan-400">✓</span> No analytics or tracking</div>
+            <div class="flex items-center gap-3"><span class="text-cyan-400">✓</span> MIT license</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="relative overflow-hidden">
+    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_100%,rgba(34,211,238,.05),transparent)]"></div>
+    <div class="mx-auto max-w-5xl px-6 py-24 text-center">
+      <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Ready to defang?</h2>
+      <p class="mt-4 text-base text-slate-400">No account. No install. Just paste and go.</p>
+      <div class="mt-8 flex flex-wrap justify-center gap-4">
+        <a href="index.html"
+           class="rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-semibold text-slate-950 shadow-xl shadow-cyan-500/25 transition hover:scale-[1.02]">
+          Open the tool →
+        </a>
+        <a href="https://github.com/dgiry/defang-ioc" target="_blank" rel="noopener"
+           class="rounded-2xl border border-white/15 bg-white/5 px-7 py-4 text-sm font-semibold text-white transition hover:bg-white/10">
+          ⭐ GitHub
+        </a>
+      </div>
+      <p class="mt-5 text-xs text-slate-600">Part of the <a href="https://secprior.vercel.app" class="text-slate-500 hover:text-slate-300 transition">SecPrior</a> open source security toolset</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/8">
+    <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-sm text-slate-600">
+      <span>🔬 Defang IOC — MIT license</span>
+      <div class="flex gap-5">
+        <a href="index.html" class="hover:text-slate-300 transition">Tool</a>
+        <a href="https://github.com/dgiry/defang-ioc" target="_blank" rel="noopener" class="hover:text-slate-300 transition">GitHub</a>
+        <a href="https://github.com/dgiry/defang-ioc/blob/main/LICENSE" target="_blank" rel="noopener" class="hover:text-slate-300 transition">License</a>
+        <a href="https://secprior.vercel.app" target="_blank" rel="noopener" class="hover:text-slate-300 transition">SecPrior</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
