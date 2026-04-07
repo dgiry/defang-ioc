@@ -38,6 +38,11 @@
           class="rounded-lg border border-white/12 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-400 transition hover:bg-white/10">
           Clear
         </button>
+        <button onclick="toggleHistory()"
+          class="relative rounded-lg border border-white/12 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-400 transition hover:text-white flex items-center gap-1.5">
+          🕐 History
+          <span id="history-badge" class="hidden absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-cyan-400 text-[9px] font-bold text-slate-950"></span>
+        </button>
         <a href="https://github.com/dgiry/defang-ioc" target="_blank" rel="noopener"
            class="hidden rounded-lg border border-white/12 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-400 transition hover:text-white sm:inline-flex items-center gap-1.5">
           ⭐ GitHub
@@ -161,6 +166,23 @@ Supported: IPs · Domains · URLs · MD5/SHA1/SHA256 · Emails · CVEs"
     </div>
 
   </main>
+
+  <!-- History panel (side drawer) -->
+  <div id="history-backdrop" onclick="closeHistory()"
+    class="hidden fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"></div>
+  <aside id="history-panel"
+    class="fixed top-0 right-0 h-full w-80 max-w-[90vw] z-50 flex flex-col border-l border-white/10 bg-slate-950 shadow-2xl translate-x-full transition-transform duration-300">
+    <div class="flex items-center justify-between border-b border-white/8 px-5 py-4">
+      <span class="text-sm font-semibold text-white">🕐 Session history</span>
+      <div class="flex items-center gap-2">
+        <button onclick="clearHistory()" class="text-xs text-slate-500 hover:text-red-400 transition">Clear all</button>
+        <button onclick="closeHistory()" class="text-slate-500 hover:text-white transition text-lg leading-none">✕</button>
+      </div>
+    </div>
+    <div id="history-list" class="flex-1 overflow-y-auto p-3 space-y-2 scrollbar">
+      <p id="history-empty" class="text-xs text-slate-600 text-center mt-8">No sessions saved yet.<br>Extract IOCs to auto-save.</p>
+    </div>
+  </aside>
 
   <!-- Toast -->
   <div id="toast" class="pointer-events-none fixed bottom-6 left-1/2 -translate-x-1/2 rounded-xl border border-cyan-400/20 bg-slate-900 px-4 py-2.5 text-sm font-medium text-cyan-300 shadow-xl opacity-0 transition-all duration-300 z-50">
@@ -663,6 +685,152 @@ attacker[@]proton[.]me`;
 
 // Init filter tabs active state
 setFilter('all');
+
+// ═══════════════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════════════
+const HISTORY_KEY = 'defang_history';
+const HISTORY_MAX = 25;
+let saveTimer = null;
+
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function saveHistory(entries) {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(entries)); } catch {}
+}
+
+function autoSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (results.length === 0) return;
+    const entries = loadHistory();
+    const entry = {
+      id:        Date.now(),
+      timestamp: new Date().toISOString(),
+      ioc_count: results.length,
+      mode,
+      preview:   results.slice(0, 4).map(r => ({ type: r.type, value: r.processed })),
+      input:     document.getElementById('input').value.slice(0, 2000),
+    };
+    // Avoid saving identical back-to-back
+    if (entries.length && entries[0].input === entry.input) return;
+    entries.unshift(entry);
+    saveHistory(entries.slice(0, HISTORY_MAX));
+    renderHistoryBadge();
+    renderHistoryList();
+  }, 1500);
+}
+
+function renderHistoryBadge() {
+  const entries = loadHistory();
+  const badge = document.getElementById('history-badge');
+  if (entries.length > 0) {
+    badge.textContent = entries.length > 9 ? '9+' : entries.length;
+    badge.classList.remove('hidden');
+    badge.classList.add('flex');
+  } else {
+    badge.classList.add('hidden');
+    badge.classList.remove('flex');
+  }
+}
+
+function renderHistoryList() {
+  const entries = loadHistory();
+  const list = document.getElementById('history-list');
+  const empty = document.getElementById('history-empty');
+  if (entries.length === 0) {
+    empty.classList.remove('hidden');
+    list.querySelectorAll('.history-entry').forEach(e => e.remove());
+    return;
+  }
+  empty.classList.add('hidden');
+
+  // Remove existing entries before re-render
+  list.querySelectorAll('.history-entry').forEach(e => e.remove());
+
+  entries.forEach(entry => {
+    const d = new Date(entry.timestamp);
+    const dateStr = d.toLocaleDateString('en-CA', { month:'short', day:'numeric' });
+    const timeStr = d.toLocaleTimeString('en-CA', { hour:'2-digit', minute:'2-digit' });
+    const previewHTML = entry.preview.map(p => {
+      const s = TYPE_STYLE[p.type] || { chip: 'border-white/15 bg-white/5 text-slate-400' };
+      return `<span class="chip border ${s.chip} max-w-[120px] truncate">${esc(p.value)}</span>`;
+    }).join('');
+
+    const div = document.createElement('div');
+    div.className = 'history-entry rounded-xl border border-white/8 bg-white/3 p-3 cursor-pointer hover:bg-white/6 transition group';
+    div.innerHTML = `
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs text-slate-400">${dateStr} · ${timeStr}</span>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-500">${entry.ioc_count} IOC${entry.ioc_count !== 1 ? 's' : ''}</span>
+          <button onclick="deleteHistoryEntry(${entry.id}, event)"
+            class="text-slate-600 hover:text-red-400 transition text-xs opacity-0 group-hover:opacity-100">✕</button>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-1">${previewHTML}</div>
+    `;
+    div.addEventListener('click', () => restoreSession(entry));
+    list.appendChild(div);
+  });
+}
+
+function restoreSession(entry) {
+  document.getElementById('input').value = entry.input;
+  if (entry.mode) {
+    mode = entry.mode;
+    document.getElementById('mode-label').textContent = mode === 'defang' ? 'Defang' : 'Refang';
+  }
+  onInput();
+  closeHistory();
+  showToast('Session restored');
+}
+
+function deleteHistoryEntry(id, e) {
+  e.stopPropagation();
+  const entries = loadHistory().filter(en => en.id !== id);
+  saveHistory(entries);
+  renderHistoryBadge();
+  renderHistoryList();
+}
+
+function clearHistory() {
+  if (!confirm('Clear all history?')) return;
+  saveHistory([]);
+  renderHistoryBadge();
+  renderHistoryList();
+}
+
+function toggleHistory() {
+  const panel = document.getElementById('history-panel');
+  const backdrop = document.getElementById('history-backdrop');
+  const isOpen = panel.style.transform === 'translateX(0%)';
+  if (isOpen) {
+    closeHistory();
+  } else {
+    renderHistoryList();
+    panel.style.transform = 'translateX(0%)';
+    backdrop.classList.remove('hidden');
+  }
+}
+
+function closeHistory() {
+  document.getElementById('history-panel').style.transform = 'translateX(100%)';
+  document.getElementById('history-backdrop').classList.add('hidden');
+}
+
+// Auto-save on every input change
+const _origOnInput = onInput;
+function onInput() {
+  _origOnInput();
+  if (results.length > 0) autoSave();
+}
+
+// Init
+renderHistoryBadge();
 </script>
 </body>
 </html>
