@@ -12,6 +12,9 @@
     .fade-in { animation: fadeIn .18s ease both; }
     @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
     .chip { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .6rem; border-radius:9999px; font-size:.7rem; font-weight:700; letter-spacing:.03em; }
+    .chip-copy { cursor:pointer; transition:opacity .15s, transform .12s; user-select:none; }
+    .chip-copy:hover { opacity:.8; transform:scale(1.06); }
+    .chip-copy:active { transform:scale(.95); }
     .scrollbar::-webkit-scrollbar { width:4px; }
     .scrollbar::-webkit-scrollbar-track { background:transparent; }
     .scrollbar::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:2px; }
@@ -137,12 +140,12 @@
     <!-- Top bar — stats -->
     <div id="stats-bar" class="mb-4 hidden items-center gap-3 flex-wrap">
       <span class="text-xs text-slate-500">Extracted:</span>
-      <span id="stat-ip"   class="chip border border-blue-400/20 bg-blue-400/10 text-blue-300">0 IPs</span>
-      <span id="stat-dom"  class="chip border border-orange-400/20 bg-orange-400/10 text-orange-300">0 Domains</span>
-      <span id="stat-url"  class="chip border border-purple-400/20 bg-purple-400/10 text-purple-300">0 URLs</span>
-      <span id="stat-hash" class="chip border border-green-400/20 bg-green-400/10 text-green-300">0 Hashes</span>
-      <span id="stat-email" class="chip border border-yellow-400/20 bg-yellow-400/10 text-yellow-300">0 Emails</span>
-      <span id="stat-cve"  class="chip border border-red-400/20 bg-red-400/10 text-red-300">0 CVEs</span>
+      <span id="stat-ip"    class="chip chip-copy border border-blue-400/20 bg-blue-400/10 text-blue-300"   onclick="copyByType('ip')"     title="Copy all IPs">0 IPs</span>
+      <span id="stat-dom"   class="chip chip-copy border border-orange-400/20 bg-orange-400/10 text-orange-300" onclick="copyByType('domain')"  title="Copy all domains">0 Domains</span>
+      <span id="stat-url"   class="chip chip-copy border border-purple-400/20 bg-purple-400/10 text-purple-300" onclick="copyByType('url')"     title="Copy all URLs">0 URLs</span>
+      <span id="stat-hash"  class="chip chip-copy border border-green-400/20 bg-green-400/10 text-green-300"   onclick="copyByType('hash')"    title="Copy all hashes">0 Hashes</span>
+      <span id="stat-email" class="chip chip-copy border border-yellow-400/20 bg-yellow-400/10 text-yellow-300" onclick="copyByType('email')"   title="Copy all emails">0 Emails</span>
+      <span id="stat-cve"   class="chip chip-copy border border-red-400/20 bg-red-400/10 text-red-300"         onclick="copyByType('cve')"     title="Copy all CVEs">0 CVEs</span>
       <div class="ml-auto flex gap-2">
         <button onclick="copyAll()" id="copy-all-btn"
           class="rounded-lg bg-cyan-400 px-3 py-1.5 text-xs font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:scale-[1.02]">
@@ -804,6 +807,15 @@ function download(filename, content, mime) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+function copyByType(type) {
+  const items = results.filter(r => r.type === type);
+  if (!items.length) return;
+  const label = { ip:'IP', domain:'domain', url:'URL', hash:'hash', email:'email', cve:'CVE' }[type] || type;
+  const plural = { ip:'IPs', domain:'domains', url:'URLs', hash:'hashes', email:'emails', cve:'CVEs' }[type];
+  navigator.clipboard.writeText(items.map(r => r.processed).join('\n'))
+    .then(() => showToast(`${items.length} ${items.length === 1 ? label : plural} copied`));
 }
 
 function copyLink() {
