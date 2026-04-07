@@ -18,6 +18,7 @@
     textarea { resize: none; }
     .copy-flash { animation: flash .3s ease; }
     @keyframes flash { 0%{background:rgba(34,211,238,.25)} 100%{background:transparent} }
+    textarea.drag-over { border-color: rgba(34,211,238,.55) !important; background: rgba(34,211,238,.06) !important; box-shadow: 0 0 0 2px rgba(34,211,238,.15); }
   </style>
 </head>
 <body class="min-h-screen text-slate-100 font-sans antialiased">
@@ -110,6 +111,7 @@ Supported: IPs · Domains · URLs · MD5/SHA1/SHA256 · Emails · CVEs"
         <!-- Example buttons -->
         <div class="flex flex-wrap gap-2">
           <span class="text-xs text-slate-600 self-center">Try:</span>
+          <span id="drop-hint" class="hidden text-xs text-cyan-400/60 self-center ml-auto">📂 Drop file here</span>
           <button onclick="loadExample()" class="rounded-lg border border-white/8 bg-white/3 px-3 py-1 text-xs text-slate-400 transition hover:bg-white/8 hover:text-slate-200">
             Sample report
           </button>
@@ -163,6 +165,13 @@ Supported: IPs · Domains · URLs · MD5/SHA1/SHA256 · Emails · CVEs"
       </div>
       <pre id="processed-text"
         class="w-full overflow-x-auto rounded-2xl border border-white/10 bg-white/4 px-4 py-3 text-xs font-mono text-slate-300 leading-6 whitespace-pre-wrap scrollbar"></pre>
+    </div>
+
+    <!-- Global counter -->
+    <div class="mt-6 flex items-center justify-center gap-1.5 text-xs text-slate-700 select-none">
+      <span>🔬</span>
+      <span id="global-counter-val" class="tabular-nums font-semibold text-slate-600">0</span>
+      <span>IOCs defanged in total</span>
     </div>
 
   </main>
@@ -687,6 +696,25 @@ attacker[@]proton[.]me`;
 setFilter('all');
 
 // ═══════════════════════════════════════════════════════════
+// GLOBAL COUNTER
+// ═══════════════════════════════════════════════════════════
+const COUNTER_KEY = 'defang_total';
+
+function getCounter() {
+  return parseInt(localStorage.getItem(COUNTER_KEY) || '0', 10) || 0;
+}
+
+function incrementCounter(n) {
+  try { localStorage.setItem(COUNTER_KEY, getCounter() + n); } catch {}
+  renderCounter();
+}
+
+function renderCounter() {
+  const el = document.getElementById('global-counter-val');
+  if (el) el.textContent = getCounter().toLocaleString();
+}
+
+// ═══════════════════════════════════════════════════════════
 // HISTORY
 // ═══════════════════════════════════════════════════════════
 const HISTORY_KEY = 'defang_history';
@@ -719,6 +747,7 @@ function autoSave() {
     if (entries.length && entries[0].input === entry.input) return;
     entries.unshift(entry);
     saveHistory(entries.slice(0, HISTORY_MAX));
+    incrementCounter(entry.ioc_count);
     renderHistoryBadge();
     renderHistoryList();
   }, 1500);
@@ -829,8 +858,58 @@ function onInput() {
   if (results.length > 0) autoSave();
 }
 
+// ═══════════════════════════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════════════════════════
+(function initDragDrop() {
+  const ta   = document.getElementById('input');
+  const hint = document.getElementById('drop-hint');
+  const ALLOWED = ['txt', 'log', 'csv', 'json', 'md'];
+
+  ta.addEventListener('dragenter', e => {
+    if (!e.dataTransfer.types.includes('Files')) return;
+    ta.classList.add('drag-over');
+    hint && hint.classList.remove('hidden');
+  });
+
+  ta.addEventListener('dragover', e => {
+    if (!e.dataTransfer.types.includes('Files')) return;
+    e.preventDefault();
+    ta.classList.add('drag-over');
+  });
+
+  ta.addEventListener('dragleave', e => {
+    // Only remove if truly leaving the textarea
+    if (e.relatedTarget && ta.contains(e.relatedTarget)) return;
+    ta.classList.remove('drag-over');
+    hint && hint.classList.add('hidden');
+  });
+
+  ta.addEventListener('drop', e => {
+    ta.classList.remove('drag-over');
+    hint && hint.classList.add('hidden');
+    const file = e.dataTransfer?.files?.[0];
+    if (!file) return;
+    e.preventDefault();
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!ALLOWED.includes(ext)) {
+      showToast('Use .txt, .log or .csv files');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      ta.value = ev.target.result;
+      onInput();
+      showToast('📂 ' + file.name + ' loaded');
+    };
+    reader.onerror = () => showToast('Could not read file');
+    reader.readAsText(file);
+  });
+})();
+
 // Init
 renderHistoryBadge();
+renderCounter();
 </script>
 </body>
 </html>
