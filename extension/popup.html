@@ -297,8 +297,7 @@ const RX = {
   md5:   /\b[a-fA-F0-9]{32}\b/g,
   cve:   /\bCVE-\d{4}-\d{4,}\b/gi,
 };
-const domainRX = () =>
-  new RegExp(`\\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)+(?:${TLD})\\b`, 'gi');
+const DOMAIN_RX = new RegExp(`\\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)+(?:${TLD})\\b`, 'gi');
 
 const RX_D = {
   ip:    /\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\[\.\]){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b/g,
@@ -322,7 +321,7 @@ const refangEml = e   => e.replace('[@]', '@').replace(/\[\.\]/g, '.');
 // ═══════════════════════════════════════════════════════════
 // EXTRACT
 // ═══════════════════════════════════════════════════════════
-function extract(text) {
+function makeAdder() {
   const found = [], seen = new Set();
   function add(type, original, processed) {
     const key = type + ':' + original.toLowerCase();
@@ -334,6 +333,11 @@ function extract(text) {
     seen.add(key);
     found.push({ type, original, processed, count: 1 });
   }
+  return { add, found };
+}
+
+function extract(text) {
+  const { add, found } = makeAdder();
   (text.match(RX.url_fanged) || []).forEach(u => add('url', u, u)); // already defanged
   let s = text.replace(RX.url_fanged, ' ');
   (s.match(RX.url) || []).forEach(u => add('url', u, defangURL(u)));
@@ -347,24 +351,14 @@ function extract(text) {
   (s.match(RX.md5)    || []).forEach(h => add('hash', h, h)); s = s.replace(RX.md5,    ' ');
   (s.match(RX.cve)    || []).forEach(c => add('cve', c.toUpperCase(), c.toUpperCase()));
   s = s.replace(RX.cve, ' ');
-  (s.match(domainRX()) || []).forEach(d => {
+  (s.match(DOMAIN_RX) || []).forEach(d => {
     if (!/^\d+\.\d+/.test(d)) add('domain', d.toLowerCase(), defangDom(d.toLowerCase()));
   });
   return found;
 }
 
 function extractDefanged(text) {
-  const found = [], seen = new Set();
-  function add(type, original, processed) {
-    const key = type + ':' + original.toLowerCase();
-    if (seen.has(key)) {
-      const ex = found.find(r => r.type === type && r.original.toLowerCase() === original.toLowerCase());
-      if (ex) ex.count++;
-      return;
-    }
-    seen.add(key);
-    found.push({ type, original, processed, count: 1 });
-  }
+  const { add, found } = makeAdder();
   (text.match(RX_D.url)    || []).forEach(u => add('url',    u, refangURL(u)));
   let s = text.replace(RX_D.url, ' ');
   (s.match(RX_D.email)     || []).forEach(e => add('email',  e, refangEml(e)));
@@ -387,7 +381,7 @@ const TYPE_STYLE = {
   cve:   { chip: 'border:1px solid rgba(248,113,113,.3);background:rgba(248,113,113,.12);color:#fca5a5', label: 'CVE' },
 };
 const hashLabel = v => v.length === 64 ? 'SHA256' : v.length === 40 ? 'SHA1' : 'MD5';
-const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
 function onInput() {
   const text = document.getElementById('input').value.trim();
@@ -441,8 +435,10 @@ function renderResults() {
 // ═══════════════════════════════════════════════════════════
 function toggleMode() {
   mode = mode === 'defang' ? 'refang' : 'defang';
-  document.getElementById('mode-lbl').textContent = mode === 'defang' ? 'Defang' : 'Refang';
-  document.querySelector('.mode-btn').classList.toggle('refang', mode === 'refang');
+  const isRefang = mode === 'refang';
+  document.getElementById('mode-lbl').textContent = isRefang ? 'Refang' : 'Defang';
+  document.querySelector('.mode-btn').classList.toggle('refang', isRefang);
+  document.getElementById('copy-all-btn').textContent = isRefang ? 'Copy all refanged' : 'Copy all defanged';
   onInput();
 }
 

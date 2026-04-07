@@ -97,7 +97,7 @@ function refangAndCopy(rawText) {
   function refangURL(url) {
     return url.replace(/hxx([pt]+)/gi, 'htt$1').replace(/\[\.\]/g, '.');
   }
-  function refangEmail(e)  { return e.replace('[@]', '@').replace(/\[\.\]/g, '.'); }
+  function refangEmail(e)  { return e.replace(/\[@\]/g, '@').replace(/\[\.\]/g, '.'); }
   function refangIP(ip)    { return ip.replace(/\[\.\]/g, '.'); }
   function refangDomain(d) { return d.replace(/\[\.\]/g, '.'); }
 
