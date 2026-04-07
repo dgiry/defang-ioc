@@ -85,14 +85,14 @@ https://dgiry.github.io/defang-ioc?input=185.220.101.45&format=json
 
 ## Browser Extension
 
-Select text on any page → right-click → **🔬 Defang IOCs** → result copied to clipboard.
+Select text on any page → right-click → **🔬 Defang IOCs** or **🔁 Refang IOCs** → result copied to clipboard.
 
 **Installation (Chrome / Edge / Brave):**
 
 1. Clone or download this repo
 2. Open `chrome://extensions` → enable **Developer mode**
 3. Click **Load unpacked** → select the `extension/` folder
-4. Select text on any page → right-click → **🔬 Defang IOCs**
+4. Select text on any page → right-click → **🔬 Defang IOCs** or **🔁 Refang IOCs**
 
 The extension also includes a popup (click the toolbar icon) with the full defang/refang UI.
 

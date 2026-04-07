@@ -188,7 +188,7 @@ function copyAll() {
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.classList.add('show');
+  t.className = mode === 'refang' ? 'refang show' : 'show';
   setTimeout(() => t.classList.remove('show'), 1800);
 }
 
