@@ -40,7 +40,7 @@
       <div class="max-w-2xl">
         <div class="mb-5 inline-flex items-center rounded-full border border-cyan-400/25 bg-cyan-400/8 px-4 py-1.5 text-sm font-medium text-cyan-300">
           <span class="mr-2 h-1.5 w-1.5 rounded-full bg-cyan-400"></span>
-          Free · Open source · No install required
+          Free · Open source · Browser extension available
         </div>
         <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
           Paste. Extract.<br><span class="gradient-text">Defang.</span>
@@ -127,7 +127,7 @@ Vuln: <span class="text-red-300">CVE-2024-21887</span></pre>
         <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
           <div class="mb-3 text-2xl">⚡</div>
           <h3 class="text-sm font-semibold text-white">Instant extraction</h3>
-          <p class="mt-2 text-xs leading-6 text-slate-400">Detects IPs, domains, URLs, MD5/SHA1/SHA256 hashes, emails, and CVEs automatically as you type.</p>
+          <p class="mt-2 text-xs leading-6 text-slate-400">Detects IPs, domains, URLs, MD5/SHA1/SHA256 hashes, emails, and CVEs automatically as you type. Duplicate IOCs show a <span class="text-amber-300">×N</span> badge.</p>
         </div>
         <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
           <div class="mb-3 text-2xl">🔄</div>
@@ -137,12 +137,27 @@ Vuln: <span class="text-red-300">CVE-2024-21887</span></pre>
         <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
           <div class="mb-3 text-2xl">🔗</div>
           <h3 class="text-sm font-semibold text-white">Pivot links</h3>
-          <p class="mt-2 text-xs leading-6 text-slate-400">Hover any IOC to reveal one-click investigation links: VirusTotal, Shodan, AbuseIPDB, URLhaus, MalwareBazaar, NVD.</p>
+          <p class="mt-2 text-xs leading-6 text-slate-400">Hover any IOC to reveal one-click investigation links: VirusTotal, Shodan, AbuseIPDB, URLhaus, MalwareBazaar, NVD, EPSS.</p>
+        </div>
+        <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
+          <div class="mb-3 text-2xl">🛡</div>
+          <h3 class="text-sm font-semibold text-white">YARA rule generator</h3>
+          <p class="mt-2 text-xs leading-6 text-slate-400">One click generates a ready-to-use YARA rule from extracted IOCs — strings for IPs, domains, URLs; hash-module conditions for hashes.</p>
         </div>
         <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
           <div class="mb-3 text-2xl">⬇</div>
           <h3 class="text-sm font-semibold text-white">Export anywhere</h3>
-          <p class="mt-2 text-xs leading-6 text-slate-400">Download as <code class="text-cyan-300">.txt</code>, <code class="text-cyan-300">.csv</code>, <code class="text-cyan-300">.json</code>, or copy as a Markdown table for tickets and reports.</p>
+          <p class="mt-2 text-xs leading-6 text-slate-400">Download as <code class="text-cyan-300">.txt</code>, <code class="text-cyan-300">.csv</code>, <code class="text-cyan-300">.json</code>, <code class="text-cyan-300">.yar</code>, or copy as a Markdown table for tickets and reports.</p>
+        </div>
+        <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
+          <div class="mb-3 text-2xl">📂</div>
+          <h3 class="text-sm font-semibold text-white">Bulk & drag & drop</h3>
+          <p class="mt-2 text-xs leading-6 text-slate-400">Drop a file directly on the input zone, or upload multiple <code class="text-cyan-300">.txt</code> / <code class="text-cyan-300">.log</code> files at once — processed and merged instantly.</p>
+        </div>
+        <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
+          <div class="mb-3 text-2xl">🧩</div>
+          <h3 class="text-sm font-semibold text-white">Browser extension</h3>
+          <p class="mt-2 text-xs leading-6 text-slate-400">Select text on any page → right-click → "Defang IOCs". Defangs in place and copies to clipboard. Works on every site, no tab switching.</p>
         </div>
         <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
           <div class="mb-3 text-2xl">🕐</div>
@@ -150,9 +165,47 @@ Vuln: <span class="text-red-300">CVE-2024-21887</span></pre>
           <p class="mt-2 text-xs leading-6 text-slate-400">Every session is auto-saved locally. Restore any past analysis with one click — up to 25 sessions stored privately in your browser.</p>
         </div>
         <div class="rounded-2xl border border-white/8 bg-white/3 p-6 card-hover">
-          <div class="mb-3 text-2xl">🛡️</div>
-          <h3 class="text-sm font-semibold text-white">Zero data sharing</h3>
-          <p class="mt-2 text-xs leading-6 text-slate-400">Everything runs in your browser. No backend, no analytics, no tracking. Works fully offline after first load.</p>
+          <div class="mb-3 text-2xl">⚙️</div>
+          <h3 class="text-sm font-semibold text-white">URL param / API mode</h3>
+          <p class="mt-2 text-xs leading-6 text-slate-400">Pass <code class="text-cyan-300">?input=…&format=json</code> to auto-process and get a JSON response — useful for bookmarklets, scripts, and integrations.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Browser extension highlight -->
+  <section class="border-b border-white/8 bg-white/1">
+    <div class="mx-auto max-w-5xl px-6 py-14">
+      <div class="flex flex-col lg:flex-row items-center gap-10">
+        <div class="flex-1">
+          <p class="text-sm font-semibold uppercase tracking-[.2em] text-cyan-400 mb-3">Browser extension</p>
+          <h2 class="text-2xl font-bold tracking-tight text-white mb-4">Defang without leaving the page</h2>
+          <p class="text-sm leading-7 text-slate-300 mb-6">
+            Select any IOC on a threat report, a vendor advisory, or a Slack message — right-click and hit <strong class="text-white">Defang IOCs</strong>. The defanged result is copied to your clipboard instantly, with a confirmation toast on the page.
+          </p>
+          <a href="https://github.com/dgiry/defang-ioc/tree/main/extension" target="_blank" rel="noopener"
+             class="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10">
+            Get the extension →
+          </a>
+        </div>
+        <div class="w-full lg:w-80 rounded-2xl border border-white/10 bg-slate-900 p-5 space-y-3 text-xs text-slate-400 shrink-0">
+          <p class="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">Installation (Chrome / Edge)</p>
+          <div class="flex items-start gap-3">
+            <span class="text-cyan-400 font-bold shrink-0">1.</span>
+            <span>Download the <code class="text-cyan-300">extension/</code> folder from the GitHub repo</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-cyan-400 font-bold shrink-0">2.</span>
+            <span>Open <code class="text-cyan-300">chrome://extensions</code> and enable Developer mode</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-cyan-400 font-bold shrink-0">3.</span>
+            <span>Click <strong class="text-white">Load unpacked</strong> and select the folder</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-cyan-400 font-bold shrink-0">4.</span>
+            <span>Select text on any page → right-click → <strong class="text-white">🔬 Defang IOCs</strong></span>
+          </div>
         </div>
       </div>
     </div>
