@@ -62,10 +62,20 @@
           class="rounded-lg bg-cyan-400 px-3 py-1.5 text-xs font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:scale-[1.02]">
           Copy all defanged
         </button>
-        <button onclick="copyMarkdown()"
-          class="rounded-lg border border-white/12 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-white/10">
-          Copy as table
-        </button>
+        <!-- Export dropdown -->
+        <div class="relative" id="export-menu-wrap">
+          <button onclick="toggleExportMenu()"
+            class="rounded-lg border border-white/12 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-white/10 flex items-center gap-1">
+            Export ▾
+          </button>
+          <div id="export-menu" class="hidden absolute right-0 top-full mt-1 z-50 min-w-[9rem] rounded-xl border border-white/12 bg-slate-900 shadow-xl py-1">
+            <button onclick="exportTXT()"  class="w-full px-4 py-2 text-left text-xs text-slate-300 hover:bg-white/8 transition">⬇ Download .txt</button>
+            <button onclick="exportCSV()"  class="w-full px-4 py-2 text-left text-xs text-slate-300 hover:bg-white/8 transition">⬇ Download .csv</button>
+            <button onclick="exportJSON()" class="w-full px-4 py-2 text-left text-xs text-slate-300 hover:bg-white/8 transition">⬇ Download .json</button>
+            <div class="my-1 border-t border-white/8"></div>
+            <button onclick="copyMarkdown()" class="w-full px-4 py-2 text-left text-xs text-slate-300 hover:bg-white/8 transition">📋 Copy as Markdown</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -498,7 +508,59 @@ function copyMarkdown() {
   const rows = results.map(r => `| ${r.type.toUpperCase()} | \`${r.processed}\` |`).join('\n');
   const md = `| Type | Indicator |\n|------|----------|\n${rows}`;
   navigator.clipboard.writeText(md).then(() => showToast('Markdown table copied!'));
+  closeExportMenu();
 }
+
+function exportTXT() {
+  const lines = results.map(r => r.processed).join('\n');
+  download('iocs.txt', lines, 'text/plain');
+  showToast('iocs.txt downloaded');
+  closeExportMenu();
+}
+
+function exportCSV() {
+  const header = 'type,original,defanged\n';
+  const rows = results.map(r =>
+    `${r.type},"${r.original.replace(/"/g,'""')}","${r.processed.replace(/"/g,'""')}"`
+  ).join('\n');
+  download('iocs.csv', header + rows, 'text/csv');
+  showToast('iocs.csv downloaded');
+  closeExportMenu();
+}
+
+function exportJSON() {
+  const data = {
+    exported_at: new Date().toISOString(),
+    mode,
+    count: results.length,
+    iocs: results.map(r => ({ type: r.type, original: r.original, processed: r.processed }))
+  };
+  download('iocs.json', JSON.stringify(data, null, 2), 'application/json');
+  showToast('iocs.json downloaded');
+  closeExportMenu();
+}
+
+function download(filename, content, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function toggleExportMenu() {
+  const m = document.getElementById('export-menu');
+  m.classList.toggle('hidden');
+}
+
+function closeExportMenu() {
+  document.getElementById('export-menu').classList.add('hidden');
+}
+
+// Close export menu on outside click
+document.addEventListener('click', e => {
+  if (!document.getElementById('export-menu-wrap')?.contains(e.target)) closeExportMenu();
+});
 
 function showToast(msg) {
   const t = document.getElementById('toast');
