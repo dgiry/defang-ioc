@@ -362,6 +362,48 @@ function hashLabel(val) {
   return 'MD5';
 }
 
+// ═══════════════════════════════════════════════════════════
+// PIVOT LINKS
+// ═══════════════════════════════════════════════════════════
+
+function pivotLinks(r) {
+  const v = encodeURIComponent(r.original);
+  switch (r.type) {
+    case 'ip':
+      return [
+        { icon: 'VT',  label: 'VirusTotal',  url: `https://www.virustotal.com/gui/ip-address/${r.original}` },
+        { icon: 'SH',  label: 'Shodan',      url: `https://www.shodan.io/host/${r.original}` },
+        { icon: 'AB',  label: 'AbuseIPDB',   url: `https://www.abuseipdb.com/check/${r.original}` },
+      ];
+    case 'domain':
+      return [
+        { icon: 'VT',  label: 'VirusTotal',  url: `https://www.virustotal.com/gui/domain/${r.original}` },
+        { icon: 'UH',  label: 'URLhaus',     url: `https://urlhaus.abuse.ch/browse.php?search=${v}` },
+      ];
+    case 'url':
+      return [
+        { icon: 'VT',  label: 'VirusTotal',  url: `https://www.virustotal.com/gui/url/${btoa(r.original).replace(/=/g,'')}` },
+        { icon: 'UH',  label: 'URLhaus',     url: `https://urlhaus.abuse.ch/browse.php?search=${v}` },
+      ];
+    case 'hash':
+      return [
+        { icon: 'VT',  label: 'VirusTotal',  url: `https://www.virustotal.com/gui/file/${r.original}` },
+        { icon: 'MB',  label: 'MalwareBazaar', url: `https://bazaar.abuse.ch/browse.php?search=sha256hash:${r.original}` },
+      ];
+    case 'email':
+      return [
+        { icon: 'VT',  label: 'VirusTotal',  url: `https://www.virustotal.com/gui/search/${v}` },
+      ];
+    case 'cve':
+      return [
+        { icon: 'NV',  label: 'NVD',         url: `https://nvd.nist.gov/vuln/detail/${r.original}` },
+        { icon: 'EP',  label: 'EPSS (FIRST)', url: `https://api.first.org/data/v1/epss?cve=${r.original}` },
+      ];
+    default:
+      return [];
+  }
+}
+
 function renderResults() {
   const list = document.getElementById('ioc-list');
   const empty = document.getElementById('empty-state');
@@ -426,12 +468,20 @@ function renderResults() {
     copyAllBtn.textContent = 'Copy all defanged';
   }
 
-  list.innerHTML = visible.map((r, i) => {
+  list.innerHTML = visible.map((r) => {
     const s = TYPE_STYLE[r.type];
     const label = r.type === 'hash' ? hashLabel(r.original) : s.label;
     const showProcessed = r.type !== 'hash' && r.type !== 'cve' && r.original !== r.processed;
+    const pivots = pivotLinks(r);
+    const pivotHTML = pivots.map(p =>
+      `<a href="${p.url}" target="_blank" rel="noopener"
+         title="${p.label}"
+         class="shrink-0 rounded-lg border border-white/8 bg-white/3 px-2 py-1 text-xs text-slate-500 transition hover:bg-white/10 hover:text-slate-200 opacity-0 group-hover:opacity-100 no-underline">
+         ${p.icon}
+       </a>`
+    ).join('');
     return `
-      <div class="ioc-row fade-in flex items-center gap-2 rounded-xl px-3 py-2 group" data-index="${results.indexOf(r)}">
+      <div class="ioc-row fade-in flex items-center gap-1.5 rounded-xl px-3 py-2 group">
         <span class="chip shrink-0 border ${s.chip}">${label}</span>
         <div class="min-w-0 flex-1">
           ${showProcessed ? `
@@ -441,6 +491,7 @@ function renderResults() {
             <div class="truncate text-xs font-mono text-slate-200">${esc(r.processed)}</div>
           `}
         </div>
+        ${pivotHTML}
         <button onclick="copyIOC('${esc(r.processed)}')"
           class="shrink-0 rounded-lg border border-white/8 bg-white/3 px-2.5 py-1 text-xs text-slate-500 transition hover:bg-white/10 hover:text-slate-200 opacity-0 group-hover:opacity-100">
           Copy
