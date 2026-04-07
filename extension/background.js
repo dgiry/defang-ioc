@@ -1,14 +1,16 @@
 // ── Context menu registration ─────────────────────────────
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: 'defang-ioc',
-    title: '🔬 Defang IOCs — copy to clipboard',
-    contexts: ['selection'],
-  });
-  chrome.contextMenus.create({
-    id: 'refang-ioc',
-    title: '🔁 Refang IOCs — copy to clipboard',
-    contexts: ['selection'],
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: 'defang-ioc',
+      title: '🔬 Defang IOCs — copy to clipboard',
+      contexts: ['selection'],
+    });
+    chrome.contextMenus.create({
+      id: 'refang-ioc',
+      title: '🔁 Refang IOCs — copy to clipboard',
+      contexts: ['selection'],
+    });
   });
 });
 
