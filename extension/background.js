@@ -5,24 +5,44 @@ chrome.runtime.onInstalled.addListener(() => {
     title: '🔬 Defang IOCs — copy to clipboard',
     contexts: ['selection'],
   });
+  chrome.contextMenus.create({
+    id: 'refang-ioc',
+    title: '🔁 Refang IOCs — copy to clipboard',
+    contexts: ['selection'],
+  });
 });
 
 // ── Context menu click ────────────────────────────────────
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId !== 'defang-ioc' || !info.selectionText) return;
-  chrome.scripting
-    .executeScript({
-      target: { tabId: tab.id },
-      func: defangAndCopy,
-      args: [info.selectionText],
-    })
-    .catch(() => {
-      // Can't inject into this page (chrome://, restricted, etc.)
-      // Fall back: open the full tool with the selection pre-loaded
-      const url = 'https://dgiry.github.io/defang-ioc?input=' +
-                  encodeURIComponent(info.selectionText);
-      chrome.tabs.create({ url });
-    });
+  if (!info.selectionText) return;
+
+  if (info.menuItemId === 'defang-ioc') {
+    chrome.scripting
+      .executeScript({
+        target: { tabId: tab.id },
+        func: defangAndCopy,
+        args: [info.selectionText],
+      })
+      .catch(() => {
+        const url = 'https://dgiry.github.io/defang-ioc?input=' +
+                    encodeURIComponent(info.selectionText);
+        chrome.tabs.create({ url });
+      });
+  }
+
+  if (info.menuItemId === 'refang-ioc') {
+    chrome.scripting
+      .executeScript({
+        target: { tabId: tab.id },
+        func: refangAndCopy,
+        args: [info.selectionText],
+      })
+      .catch(() => {
+        const url = 'https://dgiry.github.io/defang-ioc?input=' +
+                    encodeURIComponent(info.selectionText) + '&mode=refang';
+        chrome.tabs.create({ url });
+      });
+  }
 });
 
 // ── Defang function (runs in page context) ────────────────
@@ -42,56 +62,67 @@ function defangAndCopy(rawText) {
       .replace(/^https?/i, p => p.replace(/http/i, 'hxxp'))
       .replace(/\./g, '[.]');
   }
-  function defangEmail(e) {
-    return e.replace('@', '[@]').replace(/\./g, '[.]');
-  }
-  function defangIP(ip) { return ip.replace(/\./g, '[.]'); }
-  function defangDomain(d) { return d.replace(/\./g, '[.]'); }
+  function defangEmail(e) { return e.replace('@', '[@]').replace(/\./g, '[.]'); }
+  function defangIP(ip)   { return ip.replace(/\./g, '[.]'); }
+  function defangDomain(d){ return d.replace(/\./g, '[.]'); }
 
   const result = rawText
     .replace(/\bhttps?:\/\/[^\s<>"{}|\\^`[\]]+/gi, m => defangURL(m))
-    .replace(
-      /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g,
-      m => defangEmail(m),
-    )
+    .replace(/\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g, m => defangEmail(m))
     .replace(
       /\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b/g,
       m => (PRIVATE.test(m) ? m : defangIP(m)),
     )
     .replace(
-      new RegExp(
-        `\\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)+(?:${TLD})\\b`,
-        'gi',
-      ),
+      new RegExp(`\\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)+(?:${TLD})\\b`, 'gi'),
       m => defangDomain(m),
     );
 
   navigator.clipboard.writeText(result).then(() => {
-    // Remove any existing toast first
     document.getElementById('__defang_toast__')?.remove();
-
     const el = document.createElement('div');
     el.id = '__defang_toast__';
-    el.style.cssText = [
-      'all:initial',
-      'position:fixed',
-      'top:16px',
-      'right:16px',
-      'z-index:2147483647',
-      'background:#0f172a',
-      'border:1px solid rgba(34,211,238,.4)',
-      'color:#67e8f9',
-      'padding:10px 16px',
-      'border-radius:10px',
-      'font:600 13px/1.5 system-ui,sans-serif',
-      'box-shadow:0 8px 32px rgba(0,0,0,.6)',
-      'pointer-events:none',
-    ].join(';');
+    el.style.cssText = 'all:initial;position:fixed;top:16px;right:16px;z-index:2147483647;' +
+      'background:#0f172a;border:1px solid rgba(34,211,238,.4);color:#67e8f9;' +
+      'padding:10px 16px;border-radius:10px;font:600 13px/1.5 system-ui,sans-serif;' +
+      'box-shadow:0 8px 32px rgba(0,0,0,.6);pointer-events:none';
     el.textContent = '🔬 Defanged & copied to clipboard!';
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 2500);
-  }).catch(() => {
-    // Clipboard blocked — fall back to alert
-    alert('Defanged result:\n\n' + result);
-  });
+  }).catch(() => alert('Defanged result:\n\n' + result));
+}
+
+// ── Refang function (runs in page context) ────────────────
+function refangAndCopy(rawText) {
+  function refangURL(url) {
+    return url.replace(/hxx([pt]+)/gi, 'htt$1').replace(/\[\.\]/g, '.');
+  }
+  function refangEmail(e)  { return e.replace('[@]', '@').replace(/\[\.\]/g, '.'); }
+  function refangIP(ip)    { return ip.replace(/\[\.\]/g, '.'); }
+  function refangDomain(d) { return d.replace(/\[\.\]/g, '.'); }
+
+  const result = rawText
+    .replace(/\bhxx[pt]+s?:\/\/[^\s<>"{}|\\^`]+/gi, m => refangURL(m))
+    .replace(/\b[a-zA-Z0-9._%+\-]+\[@\][a-zA-Z0-9.\-]+\[\.\][a-zA-Z]{2,}\b/g, m => refangEmail(m))
+    .replace(
+      /\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\[\.\]){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b/g,
+      m => refangIP(m),
+    )
+    .replace(
+      /\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\[\.\])+[a-zA-Z]{2,}\b/gi,
+      m => refangDomain(m),
+    );
+
+  navigator.clipboard.writeText(result).then(() => {
+    document.getElementById('__defang_toast__')?.remove();
+    const el = document.createElement('div');
+    el.id = '__defang_toast__';
+    el.style.cssText = 'all:initial;position:fixed;top:16px;right:16px;z-index:2147483647;' +
+      'background:#0f172a;border:1px solid rgba(251,191,36,.4);color:#fcd34d;' +
+      'padding:10px 16px;border-radius:10px;font:600 13px/1.5 system-ui,sans-serif;' +
+      'box-shadow:0 8px 32px rgba(0,0,0,.6);pointer-events:none';
+    el.textContent = '🔁 Refanged & copied to clipboard!';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  }).catch(() => alert('Refanged result:\n\n' + result));
 }
