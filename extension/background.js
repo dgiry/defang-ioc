@@ -17,8 +17,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       args: [info.selectionText],
     })
     .catch(() => {
-      // Can't inject (chrome://, restricted page) — open popup instead
-      chrome.action.openPopup();
+      // Can't inject into this page (chrome://, restricted, etc.)
+      // Fall back: open the full tool with the selection pre-loaded
+      const url = 'https://dgiry.github.io/defang-ioc?input=' +
+                  encodeURIComponent(info.selectionText);
+      chrome.tabs.create({ url });
     });
 });
 

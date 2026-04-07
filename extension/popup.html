@@ -42,6 +42,12 @@
       transition: background .15s;
     }
     .mode-btn:hover { background: rgba(255,255,255,.1); color: #e2e8f0; }
+    .mode-btn.refang {
+      border-color: rgba(251,191,36,.4);
+      background: rgba(251,191,36,.1);
+      color: #fcd34d;
+    }
+    .mode-btn.refang:hover { background: rgba(251,191,36,.18); }
 
     /* ── Input ───────────────────────────────────────────── */
     .input-wrap { padding: 10px 12px 6px; flex-shrink: 0; }
@@ -284,6 +290,7 @@ const TLD = 'com|net|org|io|ru|cn|de|uk|fr|nl|br|jp|kr|su|cc|biz|info|me|co|xyz|
 const RX = {
   ip:    /\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b/g,
   url:   /\bhttps?:\/\/[^\s<>"{}|\\^`[\]]+/gi,
+  url_fanged: /\bhxx[pt]+s?:\/\/[^\s<>"{}|\\^`[\]]+/gi,
   email: /\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b/g,
   sha256:/\b[a-fA-F0-9]{64}\b/g,
   sha1:  /\b[a-fA-F0-9]{40}\b/g,
@@ -327,8 +334,10 @@ function extract(text) {
     seen.add(key);
     found.push({ type, original, processed, count: 1 });
   }
-  (text.match(RX.url) || []).forEach(u => add('url', u, defangURL(u)));
-  let s = text.replace(RX.url, ' ');
+  (text.match(RX.url_fanged) || []).forEach(u => add('url', u, u)); // already defanged
+  let s = text.replace(RX.url_fanged, ' ');
+  (s.match(RX.url) || []).forEach(u => add('url', u, defangURL(u)));
+  s = s.replace(RX.url, ' ');
   (s.match(RX.email) || []).forEach(e => add('email', e, defangEml(e)));
   s = s.replace(RX.email, ' ');
   (s.match(RX.ip) || []).forEach(ip => { if (!PRIVATE.test(ip)) add('ip', ip, defangIP(ip)); });
@@ -433,6 +442,7 @@ function renderResults() {
 function toggleMode() {
   mode = mode === 'defang' ? 'refang' : 'defang';
   document.getElementById('mode-lbl').textContent = mode === 'defang' ? 'Defang' : 'Refang';
+  document.querySelector('.mode-btn').classList.toggle('refang', mode === 'refang');
   onInput();
 }
 
