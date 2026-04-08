@@ -201,6 +201,11 @@
           class="rounded-lg border border-white/12 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-white/10 flex items-center gap-1">
           🔗 Link
         </button>
+        <!-- Pivot button -->
+        <button onclick="pivotFirst()" id="pivot-btn" title="Open first IOC in IOC Pivot Hub"
+          class="rounded-lg border border-violet-400/20 bg-violet-400/10 px-3 py-1.5 text-xs font-medium text-violet-300 transition hover:bg-violet-400/20 flex items-center gap-1">
+          🔭 Pivot
+        </button>
         <!-- YARA button -->
         <button onclick="showYARA()" id="yara-btn"
           class="rounded-lg border border-white/12 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-white/10 flex items-center gap-1">
@@ -818,6 +823,14 @@ function copyIOC(text) {
 function copyAll() {
   const lines = results.map(r => r.processed).join('\n');
   navigator.clipboard.writeText(lines).then(() => showToast('All ' + results.length + ' IOCs copied!'));
+}
+
+function pivotFirst() {
+  if (!results.length) return;
+  // Use original (refanged) value for pivot so platforms receive clean IOC
+  const first = results[0];
+  const ioc = mode === 'refang' ? first.processed : first.original;
+  window.open('https://dgiry.github.io/ioc-pivot?ioc=' + encodeURIComponent(ioc), '_blank', 'noopener');
 }
 
 function copyProcessed() {
